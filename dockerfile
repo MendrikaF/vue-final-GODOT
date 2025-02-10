@@ -1,29 +1,29 @@
-# Stage 1: Build the application
-FROM node:16 AS build
+# Use Node.js as the base image for building the app
+FROM node:18 AS builder
 
-# Set the working directory in the container
+# Set working directory
 WORKDIR /app
 
-# Copy the package.json and package-lock.json first to leverage Docker caching
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the Vue.js project files
+# Copy the rest of the application
 COPY . .
 
-# Build the Vue.js app
+# Build the Vue app
 RUN npm run build
 
-# Stage 2: Serve the application
+# Use Nginx as the production server
 FROM nginx:alpine
 
-# Copy the build files from the previous stage to the Nginx html folder
-COPY --from=build /app/dist /usr/share/nginx/html
+# Copy the built files to Nginx's serving directory
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Expose the port Nginx will run on
+# Expose port 80
 EXPOSE 80
 
-# Run Nginx to serve the Vue.js app
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
